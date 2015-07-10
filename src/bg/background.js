@@ -77,6 +77,13 @@ StreamManager.prototype.uploadClip = function(blob) {
   var formData = new FormData();
   formData.append("file", blob);
 
+  chrome.notifications.create('', {
+    type: "basic",
+    title: "Processing clip",
+    message: "Please wait. We'll open the video when it's ready.",
+    iconUrl: "icons/icon48.png"
+  }, function() {});
+
   $.ajax({
     url: "https://api.streamable.com/upload",
     method: "POST",
