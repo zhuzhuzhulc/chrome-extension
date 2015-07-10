@@ -12,6 +12,7 @@
   "default_locale": "en",
   "background": {
     "scripts": [
+      "src/bg/jquery.js",
       "src/bg/background.js"
     ]
   },
@@ -42,7 +43,6 @@
         "http://*.streamable.com/clipper/twitch/*"
       ],
       "js": [
-        "src/inject/jquery.js",
         "src/inject/inject.js"
       ]
     }

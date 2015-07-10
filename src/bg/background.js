@@ -6,27 +6,6 @@
 
 var MAX_CLIPS = 10; // each clip is 3 seconds long
 
-var saveData = (function () {
-    var a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style = "display: none";
-    return function (blob, fileName) {
-      var url = window.URL.createObjectURL(blob);
-      a.href = url;
-      a.download = fileName;
-      //a.click();
-      console.log(url);
-
-      chrome.tabs.create({ url: "http://streamable.com/clipper/twitch" }, function(tab) {
-        setTimeout(function() {
-          console.log(tab.id);
-          chrome.tabs.sendMessage(tab.id, { message: "file-ready", url: url }, function(response) {});
-        }, 2500);
-      });
-      //window.URL.revokeObjectURL(url);
-    };
-}());
-
 var BlobBuilder = function() {
   this.parts = [];
 }
@@ -94,6 +73,30 @@ StreamManager.prototype.addURL = function(tabId, url) {
   console.log(this.streams);
 }
 
+StreamManager.prototype.uploadClip = function(blob) {
+  var formData = new FormData();
+  formData.append("file", blob);
+
+  $.ajax({
+    url: "https://api.streamable.com/upload",
+    method: "POST",
+    data: formData,
+    processData: false,
+    contentType: false,
+    beforeSend: function (xhr) {
+      xhr.setRequestHeader("Authorization", "Basic " + btoa('switz:123456'));
+    },
+    success: function(data) {
+      if (!data || !data.length) return;
+
+      chrome.tabs.create({ url: "http://streamable.com/" + data[0].shortcode });
+    },
+    error: function(err) {
+      console.log(err);
+    }
+  });
+}
+
 StreamManager.prototype.downloadClips = function(clips) {
   var self = this;
   var blobTheBuilder = new BlobBuilder();
@@ -102,7 +105,7 @@ StreamManager.prototype.downloadClips = function(clips) {
   var processNext = function() {
     if (localClips.length === 0) {
       // no more clips to process
-      return saveData(blobTheBuilder.getBlob(), 'file.ts');
+      return self.uploadClip(blobTheBuilder.getBlob());
     }
 
     var clip = localClips.shift();
