@@ -42,7 +42,7 @@
         "http://*.streamable.com/clipper/twitch/*"
       ],
       "js": [
-        "src/inject/superagent.js",
+        "src/inject/jquery.js",
         "src/inject/inject.js"
       ]
     }
