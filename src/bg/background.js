@@ -84,7 +84,7 @@ StreamManager.prototype.uploadClip = function(blob) {
     processData: false,
     contentType: false,
     beforeSend: function (xhr) {
-      xhr.setRequestHeader("Authorization", "Basic " + btoa('switz:123456'));
+      xhr.setRequestHeader("Authorization", "Basic " + btoa('chrome:chrome')); // user:pass
     },
     success: function(data) {
       if (!data || !data.length) return;
