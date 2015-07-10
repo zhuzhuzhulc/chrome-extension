@@ -18,8 +18,7 @@
   "options_page": "src/options_custom/index.html",
   "browser_action": {
     "default_icon": "icons/icon19.png",
-    "default_title": "browser action demo",
-    "default_popup": "src/browser_action/browser_action.html"
+    "default_title": "browser action demo"
   },
   "permissions": [
     "activeTab",
@@ -29,17 +28,21 @@
     "notifications",
     "tabs",
     "http://*.ttvnw.net/*",
-    "http://*.twitch.tv/*"
+    "http://*.twitch.tv/*",
+    "http://*.streamable.com/*",
+    "\u003Call_urls>"
   ],
   "omnibox": {
     "keyword": "streamclip"
   },
+  "web_accessible_resources": ["*"],
   "content_scripts": [
     {
       "matches": [
-        "http://*.twitch.tv/*"
+        "http://*.streamable.com/clipper/twitch/*"
       ],
       "js": [
+        "src/inject/superagent.js",
         "src/inject/inject.js"
       ]
     }

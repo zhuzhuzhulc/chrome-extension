@@ -4,15 +4,57 @@
 //     "sample_setting": "This is how you use Store.js to remember values"
 // });
 
-var MAX_CLIPS = 5; // each clip is 3 seconds long
+var MAX_CLIPS = 10; // each clip is 3 seconds long
+
+var saveData = (function () {
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style = "display: none";
+    return function (blob, fileName) {
+      var url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a.download = fileName;
+      //a.click();
+      console.log(url);
+
+      chrome.tabs.create({ url: "http://streamable.com/clipper/twitch" }, function(tab) {
+        setTimeout(function() {
+          console.log(tab.id);
+          chrome.tabs.sendMessage(tab.id, { message: "file-ready", url: url }, function(response) {});
+        }, 2500);
+      });
+      //window.URL.revokeObjectURL(url);
+    };
+}());
+
+var BlobBuilder = function() {
+  this.parts = [];
+}
+
+BlobBuilder.prototype.append = function(part) {
+  this.parts.push(part);
+  this.blob = undefined; // Invalidate the blob
+}
+
+BlobBuilder.prototype.getBlob = function() {
+  if (!this.blob) {
+    this.blob = new Blob(this.parts, { type: "application/octet-stream" });
+  }
+
+  return this.blob;
+}
 
 var StreamManager = function() {
-  this.tabs = {};
   this.streams = {};
 }
 
 StreamManager.prototype.getUsername = function(title) {
   return title.split(' - ')[0];
+}
+
+StreamManager.prototype.setUsername = function(tabId, username) {
+  if (!(this.streams[tabId] && this.streams[tabId].urls)) return;
+  this.streams[tabId].user = username;
 }
 
 // Force url to be highest quality format (source)
@@ -26,11 +68,12 @@ StreamManager.prototype.forceQuality = function(url) {
   return segments.join('/');
 }
 
-StreamManager.prototype.addURL = function(user, url) {
-  if (!(this.streams[user] && this.streams[user].urls)) this.streams[user] = { urls: [], notified: false };
+StreamManager.prototype.addURL = function(tabId, url) {
+  if (!(this.streams[tabId] && this.streams[tabId].urls)) this.streams[tabId] = { urls: [], notified: false };
 
-  var stream = this.streams[user];
+  var stream = this.streams[tabId];
 
+  console.log(stream.urls.indexOf(this.forceQuality(url)));
   stream.urls.push(this.forceQuality(url));
 
   if (stream.urls.length >= MAX_CLIPS) {
@@ -42,7 +85,7 @@ StreamManager.prototype.addURL = function(user, url) {
       chrome.notifications.create('', {
         type: "basic",
         title: "Stream ready",
-        message: user + "'s stream is ready to clip!",
+        message: stream.user + "'s stream is ready to clip!",
         iconUrl: "icons/icon48.png"
       }, function() {});
     }
@@ -51,25 +94,47 @@ StreamManager.prototype.addURL = function(user, url) {
   console.log(this.streams);
 }
 
-StreamManager.prototype.saveClip = function(user) {
-  if (!(this.streams[user] && this.streams[user].urls)) return;
+StreamManager.prototype.downloadClips = function(clips) {
+  var self = this;
+  var blobTheBuilder = new BlobBuilder();
+  var localClips = clips.slice();
 
-  console.log("saving clip:", user, this.streams[user].urls);
-  // send clips to backend
-  // send user to streamable clipper
+  var processNext = function() {
+    if (localClips.length === 0) {
+      // no more clips to process
+      return saveData(blobTheBuilder.getBlob(), 'file.ts');
+    }
+
+    var clip = localClips.shift();
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", clip + "?highlight=true");
+    xhr.responseType = "blob";
+
+    xhr.onload = function() {
+      blobTheBuilder.append(xhr.response);
+      processNext();
+    }
+
+    xhr.send();
+  }
+
+  processNext();
 }
 
-StreamManager.prototype.setTab = function(tabId, user) {
-  this.tabs[tabId] = user;
+StreamManager.prototype.saveClip = function(tabId) {
+  if (!(this.streams[tabId] && this.streams[tabId].urls)) return;
+
+  var stream = this.streams[tabId];
+
+  console.log("saving clip:", stream.user, '\n', stream.urls.join('\n'));
+  // send clips to backend
+  // send user to streamable clipper
+  this.downloadClips(stream.urls);
 }
 
 StreamManager.prototype.closeTab = function(tabId) {
-  if (!(this.tabs[tabId])) return;
-
-  var user = this.tabs[tabId];
-
-  delete this.tabs[tabId];
-  delete this.streams[user];
+  delete this.streams[tabId];
 }
 
 var manager = new StreamManager();
@@ -78,8 +143,7 @@ var manager = new StreamManager();
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
   switch (request.message) {
     case "save-clip":
-      var user = manager.getUsername(request.tabTitle);
-      manager.saveClip(user);
+      manager.saveClip(request.tabId);
       break;
   }
 
@@ -91,10 +155,10 @@ chrome.webRequest.onCompleted.addListener(function(req) {
   if (!/\.ts$/.test(req.url)) return;
 
   chrome.tabs.get(req.tabId, function(tab) {
-    var user = manager.getUsername(tab.title);
+    var username = manager.getUsername(tab.title);
 
-    manager.setTab(tab.id, user);
-    manager.addURL(user, req.url);
+    manager.setUsername(tab.id, username);
+    manager.addURL(tab.id, req.url);
   });
 
 }, { urls: ["http://*.ttvnw.net/*"] });
@@ -102,4 +166,9 @@ chrome.webRequest.onCompleted.addListener(function(req) {
 chrome.tabs.onRemoved.addListener(function(tabId) {
   manager.closeTab(tabId);
   console.log(manager);
+});
+
+// On extension icon click (top right of browser)
+chrome.browserAction.onClicked.addListener(function(tab) {
+  manager.saveClip(tab.id);
 });
