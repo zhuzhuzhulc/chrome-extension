@@ -34,6 +34,7 @@ StreamManager.prototype.getUsername = function(title) {
 
 StreamManager.prototype.setUsername = function(tabId, username) {
   if (!(this.streams[tabId] && this.streams[tabId].urls)) return;
+
   this.streams[tabId].user = username;
 }
 
@@ -167,7 +168,11 @@ var updateIcon = function(url) {
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, info) {
-  updateIcon(info.url);
+  chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
+    if (!(tabs && tabs.length)) return;
+
+    if (tabs[0].id === tabId) updateIcon(tabs[0].url);
+  })
 });
 
 chrome.tabs.onActivated.addListener(function(info) {
