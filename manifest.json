@@ -18,7 +18,7 @@
   },
   "options_page": "src/options_custom/index.html",
   "browser_action": {
-    "default_icon": "icons/icon19.png",
+    "default_icon": "icons/logo128-off.png",
     "default_title": "browser action demo"
   },
   "permissions": [
@@ -31,7 +31,7 @@
     "http://*.ttvnw.net/*",
     "http://*.twitch.tv/*",
     "http://*.streamable.com/*",
-    "\u003Call_urls>"
+    "<all_urls>"
   ],
   "omnibox": {
     "keyword": "streamclip"
@@ -40,7 +40,7 @@
   "content_scripts": [
     {
       "matches": [
-        "http://*.streamable.com/clipper/twitch/*"
+        "<all_urls>"
       ],
       "js": [
         "src/inject/inject.js"

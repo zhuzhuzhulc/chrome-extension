@@ -5,6 +5,7 @@
 // });
 
 var MAX_CLIPS = 10; // each clip is 3 seconds long
+var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)|(vine.co)/i
 
 var BlobBuilder = function() {
   this.parts = [];
@@ -36,53 +37,21 @@ StreamManager.prototype.setUsername = function(tabId, username) {
   this.streams[tabId].user = username;
 }
 
-// Force url to be highest quality format (source)
-StreamManager.prototype.forceQuality = function(url) {
-  // Example url format:
-  // http://video3.jfk01.hls.ttvnw.net/hls146/faceittv_15209368192_268286797/chunked/index-0000001233-TxeV.ts
-  var segments = url.split('/');
-
-  segments[segments.length - 2] = "chunked";
-
-  return segments.join('/');
-}
-
 StreamManager.prototype.addURL = function(tabId, url) {
-  if (!(this.streams[tabId] && this.streams[tabId].urls)) this.streams[tabId] = { urls: [], notified: false };
+  if (!(this.streams[tabId] && this.streams[tabId].urls)) this.streams[tabId] = { urls: [] };
 
   var stream = this.streams[tabId];
 
-  console.log(stream.urls.indexOf(this.forceQuality(url)));
-  stream.urls.push(this.forceQuality(url));
+  stream.urls.push(url);
 
   if (stream.urls.length >= MAX_CLIPS) {
     stream.urls = stream.urls.slice(-MAX_CLIPS);
-
-    if (!stream.notified) {
-      stream.notified = true;
-
-      chrome.notifications.create('', {
-        type: "basic",
-        title: "Stream ready",
-        message: stream.user + "'s stream is ready to clip!",
-        iconUrl: "icons/icon48.png"
-      }, function() {});
-    }
   }
-
-  console.log(this.streams);
 }
 
 StreamManager.prototype.uploadClip = function(blob) {
   var formData = new FormData();
   formData.append("file", blob);
-
-  chrome.notifications.create('', {
-    type: "basic",
-    title: "Processing clip",
-    message: "Please wait. We'll open the video when it's ready.",
-    iconUrl: "icons/icon48.png"
-  }, function() {});
 
   $.ajax({
     url: "https://api.streamable.com/upload",
@@ -104,7 +73,7 @@ StreamManager.prototype.uploadClip = function(blob) {
   });
 }
 
-StreamManager.prototype.downloadClips = function(clips) {
+StreamManager.prototype.downloadTwitchClips = function(clips) {
   var self = this;
   var blobTheBuilder = new BlobBuilder();
   var localClips = clips.slice();
@@ -132,15 +101,21 @@ StreamManager.prototype.downloadClips = function(clips) {
   processNext();
 }
 
-StreamManager.prototype.saveClip = function(tabId) {
-  if (!(this.streams[tabId] && this.streams[tabId].urls)) return;
-
+StreamManager.prototype.saveTwitchClip = function(tabId) {
   var stream = this.streams[tabId];
+  if (!(stream && stream.urls)) return;
+
+  chrome.notifications.create('', {
+    type: "basic",
+    title: "Processing clip",
+    message: "Please wait. We'll open the video when it's ready.",
+    iconUrl: "icons/icon48.png"
+  }, function() {});
 
   console.log("saving clip:", stream.user, '\n', stream.urls.join('\n'));
   // send clips to backend
   // send user to streamable clipper
-  this.downloadClips(stream.urls);
+  this.downloadTwitchClips(stream.urls);
 }
 
 StreamManager.prototype.closeTab = function(tabId) {
@@ -151,13 +126,6 @@ var manager = new StreamManager();
 
 //example of using a message handler from the inject scripts
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
-  switch (request.message) {
-    case "save-clip":
-      manager.saveClip(request.tabId);
-      break;
-  }
-
-  sendResponse();
 });
 
 chrome.webRequest.onCompleted.addListener(function(req) {
@@ -175,10 +143,36 @@ chrome.webRequest.onCompleted.addListener(function(req) {
 
 chrome.tabs.onRemoved.addListener(function(tabId) {
   manager.closeTab(tabId);
-  console.log(manager);
 });
 
 // On extension icon click (top right of browser)
 chrome.browserAction.onClicked.addListener(function(tab) {
-  manager.saveClip(tab.id);
+  var match = tab.url.match(WEBSITE_REGEX);
+  if (!(match && match.length)) return;
+
+  if (match[0] === "twitch.tv")
+    manager.saveTwitchClip(tab.id);
+  else // send to clipper
+    chrome.tabs.create({ url: "http://streamable.com/clipper/" + tab.url });
 });
+
+var updateIcon = function(url) {
+  if (!url) return chrome.browserAction.setIcon({ path: "icons/logo128-off.png" });
+
+  var match = url.match(WEBSITE_REGEX);
+  if (match && match.length > 1)
+    chrome.browserAction.setIcon({ path: "icons/logo128-on.png" });
+  else
+    chrome.browserAction.setIcon({ path: "icons/logo128-off.png" });
+}
+
+chrome.tabs.onUpdated.addListener(function(tabId, info) {
+  updateIcon(info.url);
+});
+
+chrome.tabs.onActivated.addListener(function(info) {
+  chrome.tabs.get(info.tabId, function(tab) {
+    updateIcon(tab.url);
+  });
+});
+
