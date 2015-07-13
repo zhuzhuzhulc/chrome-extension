@@ -24,21 +24,22 @@ BlobBuilder.prototype.getBlob = function() {
   return this.blob;
 }
 
-var StreamManager = function() {
+// Handles twitch streams
+var TwitchManager = function() {
   this.streams = {};
 }
 
-StreamManager.prototype.getUsername = function(title) {
+TwitchManager.prototype.getTwitchUsername = function(title) {
   return title.split(' - ')[0];
 }
 
-StreamManager.prototype.setUsername = function(tabId, username) {
+TwitchManager.prototype.setTwitchUsername = function(tabId, username) {
   if (!(this.streams[tabId] && this.streams[tabId].urls)) return;
 
   this.streams[tabId].user = username;
 }
 
-StreamManager.prototype.addURL = function(tabId, url) {
+TwitchManager.prototype.addChunkURL = function(tabId, url) {
   if (!(this.streams[tabId] && this.streams[tabId].urls)) this.streams[tabId] = { urls: [] };
 
   var stream = this.streams[tabId];
@@ -50,7 +51,7 @@ StreamManager.prototype.addURL = function(tabId, url) {
   }
 }
 
-StreamManager.prototype.uploadClip = function(blob) {
+TwitchManager.prototype.uploadTwitchClip = function(blob) {
   var formData = new FormData();
   formData.append("file", blob);
 
@@ -74,7 +75,7 @@ StreamManager.prototype.uploadClip = function(blob) {
   });
 }
 
-StreamManager.prototype.downloadTwitchClips = function(clips) {
+TwitchManager.prototype.downloadTwitchClips = function(clips) {
   var self = this;
   var blobTheBuilder = new BlobBuilder();
   var localClips = clips.slice();
@@ -82,7 +83,7 @@ StreamManager.prototype.downloadTwitchClips = function(clips) {
   var processNext = function() {
     if (localClips.length === 0) {
       // no more clips to process
-      return self.uploadClip(blobTheBuilder.getBlob());
+      return self.uploadTwitchClip(blobTheBuilder.getBlob());
     }
 
     var clip = localClips.shift();
@@ -102,7 +103,7 @@ StreamManager.prototype.downloadTwitchClips = function(clips) {
   processNext();
 }
 
-StreamManager.prototype.saveTwitchClip = function(tabId) {
+TwitchManager.prototype.saveTwitchClip = function(tabId) {
   var stream = this.streams[tabId];
   if (!(stream && stream.urls)) return;
 
@@ -119,11 +120,11 @@ StreamManager.prototype.saveTwitchClip = function(tabId) {
   this.downloadTwitchClips(stream.urls);
 }
 
-StreamManager.prototype.closeTab = function(tabId) {
+TwitchManager.prototype.closeTab = function(tabId) {
   delete this.streams[tabId];
 }
 
-var manager = new StreamManager();
+var manager = new TwitchManager();
 
 //example of using a message handler from the inject scripts
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
@@ -134,10 +135,10 @@ chrome.webRequest.onCompleted.addListener(function(req) {
   if (!/\.ts$/.test(req.url)) return;
 
   chrome.tabs.get(req.tabId, function(tab) {
-    var username = manager.getUsername(tab.title);
+    var username = manager.getTwitchUsername(tab.title);
 
-    manager.setUsername(tab.id, username);
-    manager.addURL(tab.id, req.url);
+    manager.setTwitchUsername(tab.id, username);
+    manager.addChunkURL(tab.id, req.url);
   });
 
 }, { urls: ["http://*.ttvnw.net/*"] });
@@ -168,9 +169,10 @@ var updateIcon = function(url) {
 }
 
 chrome.tabs.onUpdated.addListener(function(tabId, info) {
-  chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
+  chrome.tabs.query({ currentWindow: true, active: true }, function(tabs){
     if (!(tabs && tabs.length)) return;
 
+    // if the updated tab is currently visible
     if (tabs[0].id === tabId) updateIcon(tabs[0].url);
   })
 });
