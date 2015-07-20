@@ -43,6 +43,7 @@
         "<all_urls>"
       ],
       "js": [
+        "src/bg/jquery.js",
         "src/inject/inject.js"
       ]
     }

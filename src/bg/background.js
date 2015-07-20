@@ -5,7 +5,7 @@
 // });
 
 var MAX_CLIPS = 10; // each clip is 3 seconds long
-var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)|(vine.co)/i
+var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)/i
 
 var BlobBuilder = function() {
   this.parts = [];
@@ -75,6 +75,27 @@ TwitchManager.prototype.uploadTwitchClip = function(blob) {
   });
 }
 
+TwitchManager.prototype.uploadTwitchClipToS3 = function(blob) {
+  var formData = new FormData();
+  formData.append("file", blob);
+
+  $.ajax({
+    url: "s3URL",
+    method: "PUT",
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: function(data) {
+      if (!data || !data.length) return;
+
+      chrome.tabs.create({ url: "s3" });
+    },
+    error: function(err) {
+      console.log(err);
+    }
+  });
+}
+
 TwitchManager.prototype.downloadTwitchClips = function(clips) {
   var self = this;
   var blobTheBuilder = new BlobBuilder();
@@ -114,6 +135,10 @@ TwitchManager.prototype.saveTwitchClip = function(tabId) {
     iconUrl: "icons/icon48.png"
   }, function() {});
 
+  chrome.tabs.sendMessage(tabId, { message: "save-clip" }, function(response){
+    console.log(response);
+  });
+
   console.log("saving clip:", stream.user, '\n', stream.urls.join('\n'));
   // send clips to backend
   // send user to streamable clipper
@@ -128,6 +153,9 @@ var manager = new TwitchManager();
 
 //example of using a message handler from the inject scripts
 chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.message === "save-chat") {
+    console.log(request);
+  }
 });
 
 chrome.webRequest.onCompleted.addListener(function(req) {
