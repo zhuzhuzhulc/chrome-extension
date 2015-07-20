@@ -13,6 +13,7 @@
   "background": {
     "scripts": [
       "src/bg/jquery.js",
+      "src/bg/evaporate.js",
       "src/bg/background.js"
     ]
   },

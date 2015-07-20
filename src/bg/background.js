@@ -55,23 +55,48 @@ TwitchManager.prototype.uploadTwitchClip = function(blob) {
   var formData = new FormData();
   formData.append("file", blob);
 
-  $.ajax({
-    url: "https://api.streamable.com/upload",
-    method: "POST",
-    data: formData,
-    processData: false,
-    contentType: false,
-    beforeSend: function (xhr) {
-      xhr.setRequestHeader("Authorization", "Basic " + btoa('chrome:chrome')); // user:pass
-    },
-    success: function(data) {
-      if (!data || !data.length) return;
+  var self = this;
+  this.getShortcode(function(err, data) {
+    if (err) return console.log("Get shortcode error:", err);
 
-      chrome.tabs.create({ url: "http://streamable.com/" + data[0].shortcode });
-    },
-    error: function(err) {
-      console.log(err);
+    var evaporate = new Evaporate({
+      signerUrl: 'https://staging.streamable.com/ajax/sign',
+      aws_key: 'AKIAJELSI4AJZZ4Z2DGQ',
+      bucket: data.bucket,
+      aws_url: 'http://' + data.bucket + '.s3.amazonaws.com',
+      cloudfront: true,
+      date: new Date(data.timestamp * 1000)
+    });
+
+    evaporate.add({
+      name: 'upload/' + data.shortcode,
+      file: blob,
+      xAmzHeadersAtInitiate : {
+         'x-amz-acl': 'public-read'
+      },
+      complete: function() {
+        console.log(arguments);
+        chrome.tabs.create({ url: "https://streamable-staging.s3.amazonaws.com/upload/" + data.shortcode });
+      },
+      progress: function(progress) {
+        console.log(progress);
+      },
+      error: function(msg) {
+        console.log('err', msg);
+      }
+    });
+  });
+}
+
+TwitchManager.prototype.getShortcode = function(callback) {
+  $.ajax({
+    url: 'https://staging.streamable.com/ajax/shortcode',
+    dataType: 'json',
+    success: function(data) {
+      callback(null, data);
     }
+  }).fail(function(xhr, textStatus, error) {
+    callback(error);
   });
 }
 
