@@ -1,0 +1,14 @@
+{
+  "extensionName": {
+    "message": "Streamable",
+    "description": "The name of the extension."
+  },
+  "clipStreamNotifyTitle": {
+    "message": "Uploading Video",
+    "description": "The title of the notification shown when the user clips a stream."
+  },
+  "clipStreamNotifyMessage": {
+    "message": "The video will open in the clipper as soon as it is available.",
+    "description": "The text of the notification shown when the user clips a stream."
+  }
+}
