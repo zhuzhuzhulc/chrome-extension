@@ -3,6 +3,10 @@
     "message": "Streamable",
     "description": "The name of the extension."
   },
+  "extensionDescription": {
+    "message": "Share videos and live streams",
+    "description": "The description of the extension shown in settings and the Web Store."
+  },
   "clipStreamNotifyTitle": {
     "message": "Uploading Video",
     "description": "The title of the notification shown when the user clips a stream."
