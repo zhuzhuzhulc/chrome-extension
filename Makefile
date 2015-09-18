@@ -14,7 +14,10 @@ $(EXTENSION): key.pem $(MANIFEST) $(ICONS) $(MESSAGES) $(SCRIPTS)
 $(ICONSRC)/icon%.png: $(ICONSRC)/logo.png
 	convert $< -resize $*x$* $@
 
+lint:
+	npm run lint -- $(SRC)
+
 clean:
 	rm $(EXTENSION)
 
-.PHONY: all icons clean
+.PHONY: all icons lint clean
