@@ -1,26 +1,28 @@
 {
-  "name": "Streamable",
-  "version": "0.0.1",
+  "name": "__MSG_extensionName__",
+  "version": "0.1.0",
   "manifest_version": 2,
   "description": "",
   "homepage_url": "http://streamable.com",
   "icons": {
-    "16": "icons/logo128-on.png",
-    "48": "icons/logo128-on.png",
-    "128": "icons/logo128-on.png"
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon96.png",
+    "128": "icons/icon128.png"
   },
   "default_locale": "en",
   "background": {
     "scripts": [
-      "src/bg/jquery.js",
-      "src/bg/evaporate.js",
-      "src/bg/background.js"
+      "jquery.js",
+      "background.js"
     ]
   },
-  "options_page": "src/options_custom/index.html",
-  "browser_action": {
-    "default_icon": "icons/logo128-off.png",
-    "default_title": "browser action demo"
+  "page_action": {
+    "default_icon": {
+      "19": "icons/icon19.png",
+      "38": "icons/icon38.png"
+    },
+    "default_title": "Clip It"
   },
   "permissions": [
     "activeTab",
@@ -34,9 +36,6 @@
     "http://*.streamable.com/*",
     "<all_urls>"
   ],
-  "omnibox": {
-    "keyword": "streamclip"
-  },
   "web_accessible_resources": ["*"],
   "content_scripts": [
     {
@@ -44,7 +43,7 @@
         "<all_urls>"
       ],
       "js": [
-        "src/inject/inject.js"
+        "content.js"
       ]
     }
   ]

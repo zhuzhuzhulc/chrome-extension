@@ -1,0 +1,33 @@
+{
+  "name": "streamable-chrome-extension",
+  "version": "1.0.0",
+  "description": "Streamable Chrome Extension",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint",
+    "crx": "crx"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/streamablevideo/chrome.git"
+  },
+  "keywords": [
+    "chrome",
+    "streamable",
+    "gif",
+    "video",
+    "upload",
+    "sharing"
+  ],
+  "author": "Justin Poliey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/streamablevideo/chrome/issues"
+  },
+  "homepage": "https://github.com/streamablevideo/chrome",
+  "dependencies": {
+    "crx": "^3.0.3",
+    "eslint": "^1.4.3"
+  }
+}
