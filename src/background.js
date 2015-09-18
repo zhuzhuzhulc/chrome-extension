@@ -44,7 +44,7 @@ function notify(title, message, callback) {
     type: "basic",
     title: chrome.i18n.getMessage(title),
     message: chrome.i18n.getMessage(message),
-    iconUrl: "icons/icon96.png"
+    iconUrl: "icons/icon128-square.png"
   }, callback);
 }
 
