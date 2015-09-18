@@ -113,3 +113,9 @@ chrome.tabs.onActivated.addListener(function(info) {
     togglePageAction(tab);
   });
 });
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.clipVideo) {
+    clipVideo(request.clipVideo);
+  }
+});
