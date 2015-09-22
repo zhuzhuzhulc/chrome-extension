@@ -1,4 +1,6 @@
 (function(w, document, chrome) {
+  var onTwitch = /^https?:\/\/www\.twitch\.tv/.test(window.location.href);
+
   function cumulativeOffset(element) {
     var top = 0, left = 0;
     do {
@@ -13,7 +15,14 @@
   }
 
   function shouldEnableHover() {
-    return !!document.body.querySelector('video');
+    var hasVideo = !!document.body.querySelector('video');
+    return hasVideo || onTwitch;
+  }
+
+  function shouldShowHover(el) {
+    var hoveringVideo = el.tagName.toLowerCase() === 'video';
+    var hoveringObject = el.tagName.toLowerCase() === 'object'
+    return hoveringVideo || (onTwitch && hoveringObject);
   }
 
   function getVideoSourceUrl(el) {
@@ -34,7 +43,7 @@
   }
 
   function videoIsClippable(el) {
-    return !!getVideoSourceUrl(el);
+    return onTwitch || !!getVideoSourceUrl(el);
   }
 
   var hover = {
@@ -64,7 +73,7 @@
       if (e.target === hover.btn) {
         w.clearTimeout(hover.timer);
       }
-      else if (e.target.tagName.toLowerCase() === 'video') {
+      else if (shouldShowHover(e.target)) {
         if (!hover.showing && videoIsClippable(e.target)) {
           w.clearTimeout(hover.timer);
           hover.showing = true;
@@ -87,7 +96,16 @@
     });
 
     document.body.addEventListener('click', function(e) {
-      if (e.target === hover.btn && hover.video) {
+      if (e.target !== hover.btn) {
+        return;
+      }
+      if (onTwitch) {
+        chrome.runtime.sendMessage({
+          clipStream: true,
+          title: document.title,
+          source: window.location.href
+        });
+      } else if (videoIsClippable(e.target)) {
         var sourceUrl = getVideoSourceUrl(hover.video);
         if (sourceUrl) {
           chrome.runtime.sendMessage({

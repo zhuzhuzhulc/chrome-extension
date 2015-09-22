@@ -120,5 +120,7 @@ chrome.tabs.onActivated.addListener(function(info) {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.clipVideo) {
     clipVideo(request.clipVideo, {title: request.title, source: request.source});
+  } else if (request.clipStream) {
+    clipStream(sender.tab.id, request.title, request.source);
   }
 });
