@@ -75,7 +75,11 @@
         }
       }
       if (sourceUrl) {
-        chrome.runtime.sendMessage({clipVideo: sourceUrl, source: window.location.href});
+        chrome.runtime.sendMessage({
+          clipVideo: sourceUrl,
+          title: document.title,
+          source: window.location.href
+        });
       }
     }
   })

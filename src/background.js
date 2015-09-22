@@ -1,6 +1,6 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
 var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)|(vine.co)/i
-var APP_URL = 'http://staging.streamable.com';
+var APP_URL = 'http://localhost:5000';
 
 var manager = {
   streams: {},
@@ -54,18 +54,20 @@ function popup(url, callback) {
   }, callback);
 }
 
-function clipVideo(url, callback) {
-  popup(APP_URL + '/clipper/' + url, callback);
+function clipVideo(url, params, callback) {
+  var qs = $.param(params);
+  var clipperUrl = APP_URL + '/clipper/' + encodeURIComponent(url) + '?' + qs;
+  popup(clipperUrl, callback);
 }
 
-function clipStream(tabId) {
+function clipStream(tabId, title, source) {
   var stream = manager.streams[tabId];
   if (!(stream && stream.urls)) {
     return;
   }
   notify('clipStreamNotifyTitle', 'clipStreamNotifyMessage', function(notificationId) {
     manager.buildVideo(stream.urls, function(videoUrl) {
-      clipVideo(videoUrl, function() {
+      clipVideo(videoUrl, {title: title, source: source, mime: 'video/mp4'}, function() {
         chrome.notifications.clear(notificationId);
       });
     });
@@ -93,10 +95,10 @@ chrome.pageAction.onClicked.addListener(function(tab) {
     return;
   }
   if (match[0] === "twitch.tv") {
-    clipStream(tab.id);
+    clipStream(tab.id, tab.title, tab.url);
   }
   else {
-    clipVideo(tab.url);
+    clipVideo(tab.url, {title: tab.title, source: tab.url});
   }
 });
 
@@ -116,6 +118,6 @@ chrome.tabs.onActivated.addListener(function(info) {
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.clipVideo) {
-    clipVideo(request.clipVideo);
+    clipVideo(request.clipVideo, {title: request.title, source: request.source});
   }
 });
