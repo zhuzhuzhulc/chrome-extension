@@ -55,8 +55,9 @@ function popup(url, callback) {
 }
 
 function clipVideo(url, params, callback) {
+  params.url = url;
   var qs = $.param(params);
-  var clipperUrl = APP_URL + '/clipper/' + encodeURIComponent(url) + '?' + qs;
+  var clipperUrl = APP_URL + '/clipper?' + qs;
   popup(clipperUrl, callback);
 }
 
