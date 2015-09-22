@@ -16,6 +16,27 @@
     return !!document.body.querySelector('video');
   }
 
+  function getVideoSourceUrl(el) {
+    var sourceUrls = [];
+    if (el.src) {
+      sourceUrls.push(el.src);
+    }
+    var sourceNodes = el.querySelectorAll('source');
+    for (var i = 0; i < sourceNodes.length; i++) {
+      sourceUrls.push(sourceNodes[i].src);
+    }
+    sourceUrls = sourceUrls.filter(function(url) {
+      return !/^blob:/.test(url);
+    });
+    if (sourceUrls.length > 0) {
+      return sourceUrls[0];
+    }
+  }
+
+  function videoIsClippable(el) {
+    return !!getVideoSourceUrl(el);
+  }
+
   var hover = {
     btn: null,
     video: null,
@@ -44,7 +65,7 @@
         w.clearTimeout(hover.timer);
       }
       else if (e.target.tagName.toLowerCase() === 'video') {
-        if (!hover.showing) {
+        if (!hover.showing && videoIsClippable(e.target)) {
           w.clearTimeout(hover.timer);
           hover.showing = true;
           var offset = cumulativeOffset(e.target);
@@ -67,16 +88,7 @@
 
     document.body.addEventListener('click', function(e) {
       if (e.target === hover.btn && hover.video) {
-        var sourceUrl;
-        if (hover.video.src) {
-          sourceUrl = hover.video.src;
-        }
-        else {
-          var sourceNodes = hover.video.querySelectorAll('source');
-          if (sourceNodes.length > 0) {
-            sourceUrl = sourceNodes[0].src;
-          }
-        }
+        var sourceUrl = getVideoSourceUrl(hover.video);
         if (sourceUrl) {
           chrome.runtime.sendMessage({
             clipVideo: sourceUrl,
