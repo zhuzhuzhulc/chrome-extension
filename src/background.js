@@ -1,6 +1,6 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
 var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)|(vine.co)/i
-var APP_URL = 'http://localhost:5000';
+var APP_URL = 'http://streamable.com';
 
 var manager = {
   streams: {},
