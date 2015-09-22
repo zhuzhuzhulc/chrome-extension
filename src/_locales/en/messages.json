@@ -4,15 +4,15 @@
     "description": "The name of the extension."
   },
   "extensionDescription": {
-    "message": "Share videos and live streams",
+    "message": "Instantly clip and share videos from Twitch, YouTube, Facebook, and more!",
     "description": "The description of the extension shown in settings and the Web Store."
   },
   "clipStreamNotifyTitle": {
-    "message": "Uploading Video",
+    "message": "Grabbing Stream",
     "description": "The title of the notification shown when the user clips a stream."
   },
   "clipStreamNotifyMessage": {
-    "message": "The video will open in the clipper as soon as it is available.",
+    "message": "Your clip will open in another tab as soon as it's ready.",
     "description": "The text of the notification shown when the user clips a stream."
   }
 }
