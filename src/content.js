@@ -12,11 +12,15 @@
     };
   }
 
+  function shouldEnableHover() {
+    return !!document.body.querySelector('video');
+  }
+
   var hover = {
     btn: null,
     video: null,
     showing: false,
-    enabled: true
+    enabled: shouldEnableHover()
   }
 
   if (hover.enabled) {
@@ -34,53 +38,53 @@
     btn.style.border = 'none';
     document.body.appendChild(btn);
     hover.btn = btn;
-  }
 
-  document.body.addEventListener('mouseover', function(e) {
-    if (e.target === hover.btn) {
-      w.clearTimeout(hover.timer);
-    }
-    else if (e.target.tagName.toLowerCase() === 'video') {
-      if (!hover.showing) {
+    document.body.addEventListener('mouseover', function(e) {
+      if (e.target === hover.btn) {
         w.clearTimeout(hover.timer);
-        hover.showing = true;
-        var offset = cumulativeOffset(e.target);
-        hover.btn.style.top = offset.top + 5 + 'px';
-        hover.btn.style.left = offset.left + 5 + 'px';
-        hover.btn.style.display = 'block';
-        hover.video = e.target;
       }
-    }
-  });
-
-  document.body.addEventListener('mouseout', function(e) {
-    if (hover.showing) {
-      hover.showing = false;
-      hover.timer = w.setTimeout(function() {
-        hover.btn.style.display = 'none';
-      }, 10);
-    }
-  });
-
-  document.body.addEventListener('click', function(e) {
-    if (e.target === hover.btn && hover.video) {
-      var sourceUrl;
-      if (hover.video.src) {
-        sourceUrl = hover.video.src;
-      }
-      else {
-        var sourceNodes = hover.video.querySelectorAll('source');
-        if (sourceNodes.length > 0) {
-          sourceUrl = sourceNodes[0].src;
+      else if (e.target.tagName.toLowerCase() === 'video') {
+        if (!hover.showing) {
+          w.clearTimeout(hover.timer);
+          hover.showing = true;
+          var offset = cumulativeOffset(e.target);
+          hover.btn.style.top = offset.top + 5 + 'px';
+          hover.btn.style.left = offset.left + 5 + 'px';
+          hover.btn.style.display = 'block';
+          hover.video = e.target;
         }
       }
-      if (sourceUrl) {
-        chrome.runtime.sendMessage({
-          clipVideo: sourceUrl,
-          title: document.title,
-          source: window.location.href
-        });
+    });
+
+    document.body.addEventListener('mouseout', function(e) {
+      if (hover.showing) {
+        hover.showing = false;
+        hover.timer = w.setTimeout(function() {
+          hover.btn.style.display = 'none';
+        }, 10);
       }
-    }
-  })
+    });
+
+    document.body.addEventListener('click', function(e) {
+      if (e.target === hover.btn && hover.video) {
+        var sourceUrl;
+        if (hover.video.src) {
+          sourceUrl = hover.video.src;
+        }
+        else {
+          var sourceNodes = hover.video.querySelectorAll('source');
+          if (sourceNodes.length > 0) {
+            sourceUrl = sourceNodes[0].src;
+          }
+        }
+        if (sourceUrl) {
+          chrome.runtime.sendMessage({
+            clipVideo: sourceUrl,
+            title: document.title,
+            source: window.location.href
+          });
+        }
+      }
+    });
+  }
 }(window, window.document, chrome));
