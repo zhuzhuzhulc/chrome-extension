@@ -86,10 +86,6 @@ function clipStream(tabId, title, source) {
     manager.startProcessing(stream.urls, function(eventSourceUrl) {
       var clipEvents = new EventSource(eventSourceUrl);
 
-      clipEvents.onerror = function() {
-        this.close();
-      };
-
       clipEvents.addEventListener('progress', function(evt) {
         var evtData = JSON.parse(evt.data);
         updateProgress(notificationId, evtData.percent);
