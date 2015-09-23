@@ -1,8 +1,21 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
 var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)|(vine.co)/i
-var APP_URL = 'http://streamable.com';
+var APP_URL = 'http://staging.streamable.com';
+
+function isSupportedSite(url) {
+  return WEBSITE_REGEX.test(url);
+}
+
+function isStreamingSite(url) {
+  var match = url.match(WEBSITE_REGEX);
+  if (!(match && match.length)) {
+    return false;
+  }
+  return match[0] === "twitch.tv";
+}
 
 var manager = {
+  busy: {},
   streams: {},
 
   trackSegment: function(tabId, url) {
@@ -34,10 +47,31 @@ var manager = {
     });
   },
 
+  available: function(tabId) {
+    manager.busy[tabId] = false;
+  },
+
+  unavailable: function(tabId) {
+    manager.busy[tabId] = true;
+  },
+
+  isAvailable: function(tabId) {
+    return !manager.busy[tabId];
+  },
+
   cleanup: function(tabId) {
     delete manager.streams[tabId];
   }
 };
+
+function updatePageAction(tab) {
+  if (isSupportedSite(tab.url) && manager.isAvailable(tab.id)) {
+    chrome.pageAction.show(tab.id);
+  }
+  else {
+    chrome.pageAction.hide(tab.id);
+  }
+}
 
 function notify(title, message, callback) {
   chrome.notifications.create({
@@ -77,11 +111,24 @@ function clipVideo(url, params, callback) {
   popup(clipperUrl, callback);
 }
 
-function clipStream(tabId, title, source) {
-  var stream = manager.streams[tabId];
+function startClipping(tab) {
+  manager.unavailable(tab.id);
+  updatePageAction(tab);
+}
+
+function stopClipping(tab) {
+  manager.available(tab.id);
+  updatePageAction(tab);
+}
+
+function clipStream(tab, title, source) {
+  var stream = manager.streams[tab.id];
   if (!(stream && stream.urls)) {
     return;
   }
+
+  startClipping(tab);
+
   notifyProgress('clipStreamNotifyTitle', 'clipStreamNotifyMessage', function(notificationId) {
     manager.startProcessing(stream.urls, function(eventSourceUrl) {
       var clipEvents = new EventSource(eventSourceUrl);
@@ -97,24 +144,17 @@ function clipStream(tabId, title, source) {
         updateProgress(notificationId, 100, function() {
           clipVideo(evtData.videoUrl, {title: title, source: source, mime: 'video/mp4'}, function() {
             chrome.notifications.clear(notificationId);
+            stopClipping(tab);
           });
         });
       });
 
       clipEvents.addEventListener('error', function() {
+        stopClipping(tab);
         clipEvents.close();
       });
     });
   });
-}
-
-function togglePageAction(tab) {
-  if (WEBSITE_REGEX.test(tab.url)) {
-    chrome.pageAction.show(tab.id);
-  }
-  else {
-    chrome.pageAction.hide(tab.id);
-  }
 }
 
 chrome.webRequest.onCompleted.addListener(function(req) {
@@ -124,12 +164,10 @@ chrome.webRequest.onCompleted.addListener(function(req) {
 }, {urls: ["http://*.ttvnw.net/*.ts"]});
 
 chrome.pageAction.onClicked.addListener(function(tab) {
-  var match = tab.url.match(WEBSITE_REGEX);
-  if (!(match && match.length)) {
-    return;
-  }
-  if (match[0] === "twitch.tv") {
-    clipStream(tab.id, tab.title, tab.url);
+  if (isStreamingSite(tab.url)) {
+    if (manager.isAvailable(tab.id)) {
+      clipStream(tab, tab.title, tab.url);
+    }
   }
   else {
     clipVideo(tab.url, {title: tab.title, source: tab.url});
@@ -137,7 +175,7 @@ chrome.pageAction.onClicked.addListener(function(tab) {
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
-  togglePageAction(tab);
+  updatePageAction(tab);
 });
 
 chrome.tabs.onRemoved.addListener(function(tabId) {
@@ -146,14 +184,14 @@ chrome.tabs.onRemoved.addListener(function(tabId) {
 
 chrome.tabs.onActivated.addListener(function(info) {
   chrome.tabs.get(info.tabId, function(tab) {
-    togglePageAction(tab);
+    updatePageAction(tab);
   });
 });
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.clipVideo) {
     clipVideo(request.clipVideo, {title: request.title, source: request.source});
-  } else if (request.clipStream) {
-    clipStream(sender.tab.id, request.title, request.source);
+  } else if (request.clipStream && manager.isAvailable(sender.tab.id)) {
+    clipStream(sender.tab, request.title, request.source);
   }
 });
