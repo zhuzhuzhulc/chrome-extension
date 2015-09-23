@@ -18,15 +18,21 @@ var manager = {
   busy: {},
   streams: {},
 
-  trackSegment: function(tabId, url) {
-    if (!manager.streams[tabId]) {
-      manager.streams[tabId] = {urls: []};
+  trackSegment: function(tab, url) {
+    if (!manager.streams[tab.id]) {
+      manager.streams[tab.id] = {urls: []};
     }
-    var stream = manager.streams[tabId];
+    var stream = manager.streams[tab.id];
     stream.urls.push(url);
     if (stream.urls.length > MAX_SEGMENTS) {
       stream.urls = stream.urls.slice(-MAX_SEGMENTS);
     }
+    updatePageAction(tab);
+  },
+
+  hasSegments: function(tabId) {
+    var stream = manager.streams[tabId];
+    return stream && stream.urls.length > 0;
   },
 
   startProcessing: function(segmentUrls, callback) {
@@ -65,7 +71,7 @@ var manager = {
 };
 
 function updatePageAction(tab) {
-  if (isSupportedSite(tab.url) && manager.isAvailable(tab.id)) {
+  if (isSupportedSite(tab.url) && manager.isAvailable(tab.id) && manager.hasSegments(tab.id)) {
     chrome.pageAction.show(tab.id);
   }
   else {
@@ -159,7 +165,7 @@ function clipStream(tab, title, source) {
 
 chrome.webRequest.onCompleted.addListener(function(req) {
   chrome.tabs.get(req.tabId, function(tab) {
-    manager.trackSegment(tab.id, req.url);
+    manager.trackSegment(tab, req.url);
   });
 }, {urls: ["http://*.ttvnw.net/*.ts"]});
 
