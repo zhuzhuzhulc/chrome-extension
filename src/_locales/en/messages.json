@@ -12,7 +12,7 @@
     "description": "The title of the notification shown when the user clips a stream."
   },
   "clipStreamNotifyMessage": {
-    "message": "Your clip will open in another tab as soon as it's ready.",
+    "message": "Opening in a new tab...",
     "description": "The text of the notification shown when the user clips a stream."
   }
 }
