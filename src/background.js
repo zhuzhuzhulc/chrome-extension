@@ -16,7 +16,7 @@ var manager = {
     }
   },
 
-  buildVideo: function(segmentUrls, callback) {
+  startProcessing: function(segmentUrls, callback) {
     $.get(APP_URL + '/ajax/transcoder', function(transcoderUrl) {
       var concatPayload = {
         userAgent: 'Streamable Chrome Extension',
@@ -25,10 +25,10 @@ var manager = {
       };
       $.ajax({
         type: 'post',
-        url: 'http://' + transcoderUrl + '/segments/concat',
+        url: 'http://' + transcoderUrl + '/concat',
         data: concatPayload,
         success: function(concatData) {
-          callback(concatData.url);
+          callback('http://' + transcoderUrl + '/events/' + concatData.job_id);
         }
       });
     });
@@ -46,6 +46,21 @@ function notify(title, message, callback) {
     message: chrome.i18n.getMessage(message),
     iconUrl: "icons/icon128-square.png"
   }, callback);
+}
+
+function notifyProgress(title, message, callback) {
+  chrome.notifications.create({
+    type: 'progress',
+    title: chrome.i18n.getMessage(title),
+    message: chrome.i18n.getMessage(message),
+    iconUrl: "icons/icon128-square.png",
+    priority: 2,
+    progress: 0
+  }, callback);
+}
+
+function updateProgress(notificationId, percent, callback) {
+  chrome.notifications.update(notificationId, {progress: Math.round(percent)}, callback);
 }
 
 function popup(url, callback) {
@@ -66,10 +81,31 @@ function clipStream(tabId, title, source) {
   if (!(stream && stream.urls)) {
     return;
   }
-  notify('clipStreamNotifyTitle', 'clipStreamNotifyMessage', function(notificationId) {
-    manager.buildVideo(stream.urls, function(videoUrl) {
-      clipVideo(videoUrl, {title: title, source: source, mime: 'video/mp4'}, function() {
-        chrome.notifications.clear(notificationId);
+  notifyProgress('clipStreamNotifyTitle', 'clipStreamNotifyMessage', function(notificationId) {
+    manager.startProcessing(stream.urls, function(eventSourceUrl) {
+      var clipEvents = new EventSource(eventSourceUrl);
+
+      clipEvents.onerror = function() {
+        this.close();
+      };
+
+      clipEvents.addEventListener('progress', function(evt) {
+        var evtData = JSON.parse(evt.data);
+        updateProgress(notificationId, evtData.percent);
+      });
+
+      clipEvents.addEventListener('finish', function(evt) {
+        var evtData = JSON.parse(evt.data);
+        clipEvents.close();
+        updateProgress(notificationId, 100, function() {
+          clipVideo(evtData.videoUrl, {title: title, source: source, mime: 'video/mp4'}, function() {
+            chrome.notifications.clear(notificationId);
+          });
+        });
+      });
+
+      clipEvents.addEventListener('error', function() {
+        clipEvents.close();
       });
     });
   });
