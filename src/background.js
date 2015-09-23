@@ -60,7 +60,8 @@ function notifyProgress(title, message, callback) {
 }
 
 function updateProgress(notificationId, percent, callback) {
-  chrome.notifications.update(notificationId, {progress: Math.round(percent)}, callback);
+  var progress = Math.min(100, Math.max(Math.round(percent), 0));
+  chrome.notifications.update(notificationId, {progress: progress}, callback);
 }
 
 function popup(url, callback) {
