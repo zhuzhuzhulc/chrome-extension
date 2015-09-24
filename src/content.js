@@ -119,7 +119,7 @@
           title: getStreamTitle(),
           source: window.location.href
         });
-      } else if (videoIsClippable(e.target)) {
+      } else if (videoIsClippable(hover.video)) {
         var sourceUrl = getVideoSourceUrl(hover.video);
         if (sourceUrl) {
           chrome.runtime.sendMessage({
