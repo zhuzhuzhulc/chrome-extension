@@ -3,6 +3,10 @@
     "message": "Streamable",
     "description": "The name of the extension."
   },
+  "extensionShortName": {
+    "message": "Streamable",
+    "description": "The shortname of the extension."
+  },
   "extensionDescription": {
     "message": "Instantly clip and share videos from Twitch, YouTube, Facebook, and more!",
     "description": "The description of the extension shown in settings and the Web Store."
@@ -16,7 +20,7 @@
     "description": "The title of the notification shown when the user clips a stream."
   },
   "clipStreamNotifyMessage": {
-    "message": "Opening in a new tab...",
+    "message": "Your clip will open in a new tab...",
     "description": "The text of the notification shown when the user clips a stream."
   }
 }
