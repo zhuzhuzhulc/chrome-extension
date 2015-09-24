@@ -172,7 +172,9 @@ chrome.webRequest.onCompleted.addListener(function(req) {
 chrome.pageAction.onClicked.addListener(function(tab) {
   if (isStreamingSite(tab.url)) {
     if (manager.isAvailable(tab.id)) {
-      clipStream(tab, tab.title, tab.url);
+      chrome.tabs.sendMessage(tab.id, {'getStreamTitle': true}, function(response) {
+        clipStream(tab, response.streamTitle, tab.url);
+      });
     }
   }
   else {

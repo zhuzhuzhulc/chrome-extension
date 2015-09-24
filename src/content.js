@@ -46,6 +46,20 @@
     return onTwitch || !!getVideoSourceUrl(el);
   }
 
+  function getStreamTitle() {
+    var title;
+    if (onTwitch) {
+      var titleNode = document.querySelector('#channel .info .title .real');
+      if (titleNode) {
+        title = titleNode.innerText;
+      }
+    }
+    if (!title) {
+      title = document.title;
+    }
+    return title;
+  }
+
   var hover = {
     btn: null,
     video: null,
@@ -102,7 +116,7 @@
       if (onTwitch) {
         chrome.runtime.sendMessage({
           clipStream: true,
-          title: document.title,
+          title: getStreamTitle(),
           source: window.location.href
         });
       } else if (videoIsClippable(e.target)) {
@@ -117,4 +131,12 @@
       }
     });
   }
+
+  chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    var response = {};
+    if (request.getStreamTitle) {
+      response.streamTitle = getStreamTitle()
+    }
+    sendResponse(response);
+  });
 }(window, window.document, chrome));
