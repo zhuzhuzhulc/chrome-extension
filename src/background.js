@@ -1,17 +1,23 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
-var WEBSITE_REGEX = /(youtube)|(twitch\.tv)|(.mp4)|(.webm)|(gfycat.com)|(vimeo.com)|(streamable.com)|(instagram.com)|(twitter.com)|(facebook)|(dailymotion.com)|(vine.co)/i
 var APP_URL = 'http://staging.streamable.com';
 
-function isSupportedSite(url) {
-  return WEBSITE_REGEX.test(url);
+
+function isVideoSite(url) {
+  var re = new RegExp([
+    '(^https?:\\/\\/(?:.+\\.)?youtube\\.com\\/watch)',
+    '(^https?:\\/\\/(?:.+\\.)?gfycat\\.com\\/.+)',
+    '(^https?:\\/\\/(?:.+\\.)?vimeo\\.com\\/[^//]+$)',
+    '(^https?:\\/\\/(?:.+\\.)?vimeo\\.com\\/channels\\/[^/]+\\/[^/]+$)',
+    '(^https?:\\/\\/(?:.+\\.)?vimeo\\.com\\/groups\\/[^/]+\\/videos\\/[^/]+$)',
+    '(^https?:\\/\\/(?:.+\\.)?vine\\.co\\/v\\/.+)',
+    '(^https?:\\/\\/(?:.+\\.)?dailymotion\\.com\\/video\\/.+)',
+    '((?:\\.mp4|\\.webm)$)'
+  ].join('|'));
+  return re.test(url);
 }
 
 function isStreamingSite(url) {
-  var match = url.match(WEBSITE_REGEX);
-  if (!(match && match.length)) {
-    return false;
-  }
-  return match[0] === "twitch.tv";
+  return /^https?:\/\/www\.twitch\.tv/.test(url);
 }
 
 var manager = {
@@ -71,10 +77,11 @@ var manager = {
 };
 
 function updatePageAction(tab) {
-  if (isSupportedSite(tab.url) && manager.isAvailable(tab.id) && manager.hasSegments(tab.id)) {
+  var clipVideoReady = isVideoSite(tab.url);
+  var clipStreamReady = isStreamingSite(tab.url) && manager.isAvailable(tab.id) && manager.hasSegments(tab.id);
+  if (clipVideoReady || clipStreamReady) {
     chrome.pageAction.show(tab.id);
-  }
-  else {
+  } else {
     chrome.pageAction.hide(tab.id);
   }
 }
