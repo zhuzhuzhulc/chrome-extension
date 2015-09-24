@@ -7,6 +7,10 @@
     "message": "Instantly clip and share videos from Twitch, YouTube, Facebook, and more!",
     "description": "The description of the extension shown in settings and the Web Store."
   },
+  "pageActionTooltip": {
+    "message": "Clip It",
+    "description": "The tooltip shown on the page action icon."
+  },
   "clipStreamNotifyTitle": {
     "message": "Grabbing Stream",
     "description": "The title of the notification shown when the user clips a stream."
