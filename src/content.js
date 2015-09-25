@@ -20,6 +20,9 @@
   }
 
   function shouldShowHover(el) {
+    if (el.getAttribute('data-clip-noclip')) {
+      return false;
+    }
     var hoveringVideo = el.tagName.toLowerCase() === 'video';
     var hoveringObject = el.tagName.toLowerCase() === 'object'
     return hoveringVideo || (onTwitch && hoveringObject);
