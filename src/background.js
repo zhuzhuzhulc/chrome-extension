@@ -119,7 +119,7 @@ function popup(url, callback) {
 
 function clipVideo(url, params, callback) {
   params.url = url;
-  var qs = $.param(params);
+  var qs = $.param(params).replace(/\+/g, '%20');
   var clipperUrl = APP_URL + '/clipper?' + qs;
   popup(clipperUrl, callback);
 }
