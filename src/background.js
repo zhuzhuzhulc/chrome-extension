@@ -72,7 +72,8 @@ var manager = {
 function updatePageAction(tab) {
   var clipVideoReady = isVideoSite(tab.url);
   var clipStreamReady = isStreamingSite(tab.url) && manager.isAvailable(tab.id) && manager.hasSegments(tab.id);
-  if (clipVideoReady || clipStreamReady) {
+  var inClipper = /^https?:\/\/(?:.+\.)?streamable\.com\/clipper/.test(tab.url);
+  if (!inClipper && (clipVideoReady || clipStreamReady)) {
     chrome.pageAction.show(tab.id);
   } else {
     chrome.pageAction.hide(tab.id);
