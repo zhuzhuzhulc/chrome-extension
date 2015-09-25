@@ -25,6 +25,7 @@ lint:
 	npm run lint -- $(SRC)
 
 clean:
-	rm $(EXTENSION)
+	-rm $(EXTENSION)
+	-rm $(SITES)
 
 .PHONY: all deploy-sites lint clean
