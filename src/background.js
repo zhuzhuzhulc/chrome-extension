@@ -1,23 +1,16 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
 var APP_URL = 'http://staging.streamable.com';
 
+var VIDEO_SITES_RE = /streamable\.com/;
+var STREAMING_SITES_RE = /streamable\.com/;
+loadStoredSiteUrls();
 
 function isVideoSite(url) {
-  var re = new RegExp([
-    '(^https?:\\/\\/(?:.+\\.)?youtube\\.com\\/watch)',
-    '(^https?:\\/\\/(?:.+\\.)?gfycat\\.com\\/.+)',
-    '(^https?:\\/\\/(?:.+\\.)?vimeo\\.com\\/[^//]+$)',
-    '(^https?:\\/\\/(?:.+\\.)?vimeo\\.com\\/channels\\/[^/]+\\/[^/]+$)',
-    '(^https?:\\/\\/(?:.+\\.)?vimeo\\.com\\/groups\\/[^/]+\\/videos\\/[^/]+$)',
-    '(^https?:\\/\\/(?:.+\\.)?vine\\.co\\/v\\/.+)',
-    '(^https?:\\/\\/(?:.+\\.)?dailymotion\\.com\\/video\\/.+)',
-    '((?:\\.mp4|\\.webm)$)'
-  ].join('|'));
-  return re.test(url);
+  return VIDEO_SITES_RE.test(url);
 }
 
 function isStreamingSite(url) {
-  return /^https?:\/\/www\.twitch\.tv/.test(url);
+  return STREAMING_SITES_RE.test(url);
 }
 
 var manager = {
@@ -209,4 +202,46 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   } else if (request.clipStream && manager.isAvailable(sender.tab.id)) {
     clipStream(sender.tab, request.title, request.source);
   }
+});
+
+function buildSitesRegExp(sitePatterns) {
+  return new RegExp(sitePatterns.join('|'), 'i');
+}
+
+function updateSitesRegExps(items) {
+  VIDEO_SITES_RE = buildSitesRegExp(items.videoSites);
+  STREAMING_SITES_RE = buildSitesRegExp(items.streamingSites);
+}
+
+function loadStoredSiteUrls() {
+  chrome.storage.local.get({
+    videoSites: [
+      "(^https?://(?:.+\\.)?dailymotion\\.com\\/video\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?gfycat\\.com\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?vimeo\\.com\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?vimeo\\.com\\/channels\\/[^/]+\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?vimeo\\.com\\/groups\\/[^/]+\\/videos\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?vine\\.co\\/v\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?youtube\\.com\\/watch[^/]+$)"
+    ],
+    streamingSites: [
+      "(^https?://(?:.+\\.)?twitch\\.tv\\/[^/]+$)"
+    ]
+  }, updateSitesRegExps);
+}
+
+function updateSiteUrls() {
+  $.getJSON('http://streamable-extension.s3.amazonaws.com/chrome/sites.json', function(data) {
+    chrome.storage.local.set(data, function() {
+      updateSitesRegExps(data);
+    });
+  });
+}
+
+chrome.runtime.onInstalled.addListener(function() {
+  updateSiteUrls();
+});
+
+chrome.runtime.onStartup.addListener(function() {
+  updateSiteUrls();
 });

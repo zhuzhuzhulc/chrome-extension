@@ -16,3 +16,4 @@ Run `make lint` to check code for issues.
 
 Run `make` to generate a build of the extension.
 
+To update the list of supported sites, update the patterns in sites.patterns.json and then run `make deploy-sites`.

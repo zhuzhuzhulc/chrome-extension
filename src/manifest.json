@@ -32,6 +32,7 @@
     "contextMenus",
     "notifications",
     "tabs",
+    "storage",
     "http://*.ttvnw.net/*",
     "http://*.twitch.tv/*",
     "http://*.streamable.com/*",

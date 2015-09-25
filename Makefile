@@ -5,8 +5,9 @@ MANIFEST=$(SRC)/manifest.json
 MESSAGES=$(wildcard $(SRC)/_locales/*/*.json)
 SCRIPTS=$(wildcard $(SRC)/*.js)
 EXTENSION=streamable.crx
+SITES=sites.json
 
-all: $(ICONS) $(EXTENSION)
+all: $(ICONS) $(SITES) $(EXTENSION)
 
 $(EXTENSION): key.pem $(MANIFEST) $(ICONS) $(MESSAGES) $(SCRIPTS)
 	npm run crx -- pack -o $@ -p key.pem $(SRC)
@@ -14,10 +15,16 @@ $(EXTENSION): key.pem $(MANIFEST) $(ICONS) $(MESSAGES) $(SCRIPTS)
 $(ICONSRC)/icon%.png: $(ICONSRC)/logo.png
 	convert $< -resize $*x$* $@
 
+$(SITES): sites.patterns.json
+	node build-sites.js $< $@
+
+deploy-sites: $(SITES)
+	npm run s3-put -- $< s3://streamable-extension/chrome/$< --acl-public
+
 lint:
 	npm run lint -- $(SRC)
 
 clean:
 	rm $(EXTENSION)
 
-.PHONY: all icons lint clean
+.PHONY: all deploy-sites lint clean

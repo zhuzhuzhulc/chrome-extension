@@ -1,0 +1,15 @@
+{
+  "videoSites": [
+    "*://*.dailymotion.com/video/*",
+    "*://*.gfycat.com/*",
+    "*://*.streamable.com/*",
+    "*://*.vimeo.com/*",
+    "*://*.vimeo.com/channels/*/*",
+    "*://*.vimeo.com/groups/*/videos/*",
+    "*://*.vine.co/v/*",
+    "*://*.youtube.com/watch*"
+  ],
+  "streamingSites": [
+    "*://*.twitch.tv/*"
+  ]
+}
