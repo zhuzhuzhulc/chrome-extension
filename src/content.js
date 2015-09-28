@@ -103,7 +103,7 @@
       }
     });
 
-    document.body.addEventListener('mouseout', function(e) {
+    document.body.addEventListener('mouseout', function() {
       if (hover.showing) {
         hover.showing = false;
         hover.timer = w.setTimeout(function() {
