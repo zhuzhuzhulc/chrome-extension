@@ -19,8 +19,8 @@ function makeMatchRe(pattern) {
   } else {
     parts.push(escapeRegExp(match[2]));
   }
-  parts.push(match[3].split('*').map(escapeRegExp).join('[^/]+'));
-  return '(^' + parts[0] + '://' + parts[1] + parts[2] + '$)';
+  parts.push(escapeRegExp(match[3]).replace(/\\\*/g, '.+?'));
+  return '(?:^' + parts[0] + '://' + parts[1] + parts[2] + '$)';
 }
 
 var sites = {videoSites: [], streamingSites: []};
