@@ -5,6 +5,8 @@ var VIDEO_SITES_RE = /streamable\.com/;
 var STREAMING_SITES_RE = /streamable\.com/;
 loadStoredSiteUrls();
 
+$.ajaxSetup({cache: false});
+
 function isVideoSite(url) {
   return VIDEO_SITES_RE.test(url);
 }
