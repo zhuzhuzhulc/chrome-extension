@@ -7,7 +7,9 @@
     "*://*.vimeo.com/channels/*/*",
     "*://*.vimeo.com/groups/*/videos/*",
     "*://*.vine.co/v/*",
-    "*://*.youtube.com/watch*"
+    "*://*.youtube.com/watch*",
+    "*://*/*.mp4",
+    "*://*/*.webm"
   ],
   "streamingSites": [
     "*://*.twitch.tv/*"
