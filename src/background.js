@@ -80,15 +80,6 @@ function updatePageAction(tab) {
   }
 }
 
-function notify(title, message, callback) {
-  chrome.notifications.create({
-    type: "basic",
-    title: chrome.i18n.getMessage(title),
-    message: chrome.i18n.getMessage(message),
-    iconUrl: "icons/icon128-square.png"
-  }, callback);
-}
-
 function notifyProgress(title, message, callback) {
   chrome.notifications.create({
     type: 'progress',
