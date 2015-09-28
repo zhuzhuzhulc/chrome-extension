@@ -188,7 +188,7 @@ chrome.tabs.onActivated.addListener(function(info) {
   });
 });
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function(request, sender) {
   if (request.clipVideo) {
     clipVideo(request.clipVideo, {title: request.title, source: request.source});
   } else if (request.clipStream && manager.isAvailable(sender.tab.id)) {
