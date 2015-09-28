@@ -15,7 +15,7 @@
   }
 
   function shouldEnableHover() {
-    var hasVideo = !!document.body.querySelector('video');
+    var hasVideo = !!(document.body && document.body.querySelector('video'));
     return hasVideo || onTwitch;
   }
 
