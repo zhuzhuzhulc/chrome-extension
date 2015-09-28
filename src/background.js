@@ -66,6 +66,7 @@ var manager = {
 
   cleanup: function(tabId) {
     delete manager.streams[tabId];
+    delete manager.busy[tabId];
   }
 };
 
