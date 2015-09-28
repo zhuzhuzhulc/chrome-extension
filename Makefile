@@ -15,7 +15,7 @@ $(EXTENSION): key.pem $(MANIFEST) $(ICONS) $(MESSAGES) $(SCRIPTS)
 $(ICONSRC)/icon%.png: $(ICONSRC)/logo.png
 	convert $< -resize $*x$* $@
 
-$(SITES): sites.patterns.json
+$(SITES): sites.patterns.json build-sites.js
 	node build-sites.js $< $@
 
 deploy-sites: $(SITES)
