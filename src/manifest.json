@@ -49,6 +49,10 @@
       ]
     }
   ],
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
   "externally_connectable": {
     "matches": [
       "*://*.twitch.tv/*"

@@ -1,5 +1,6 @@
 (function(w, document, chrome) {
   var onTwitch = /^https?:\/\/www\.twitch\.tv/.test(window.location.href);
+  var hideClipIt = false;
 
   function cumulativeOffset(element) {
     var top = 0, left = 0;
@@ -16,7 +17,7 @@
 
   function shouldEnableHover() {
     var hasVideo = !!(document.body && document.body.querySelector('video'));
-    return hasVideo || onTwitch;
+    return !hideClipIt && (hasVideo || onTwitch);
   }
 
   function shouldShowHover(el) {
@@ -63,14 +64,18 @@
     return title;
   }
 
-  var hover = {
-    btn: null,
-    video: null,
-    showing: false,
-    enabled: shouldEnableHover()
-  }
+  function init() {
+    var hover = {
+      btn: null,
+      video: null,
+      showing: false,
+      enabled: shouldEnableHover()
+    }
 
-  if (hover.enabled) {
+    if (!hover.enabled) {
+      return;
+    }
+
     var btn = document.createElement('span');
     btn.style.display = 'none';
     btn.style.position = 'absolute';
@@ -141,5 +146,10 @@
       response.streamTitle = getStreamTitle()
     }
     sendResponse(response);
+  });
+
+  chrome.storage.sync.get({hideClipIt: false}, function(items) {
+    hideClipIt = items.hideClipIt;
+    init();
   });
 }(window, window.document, chrome));
