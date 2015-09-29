@@ -32,7 +32,7 @@
       return false;
     }
     var hoveringVideo = el.tagName.toLowerCase() === 'video';
-    var hoveringTwitchStream = onTwitch && el.matches('.player-overlay');
+    var hoveringTwitchStream = onTwitch && (el.matches('object[id^=player]') || el.matches('.player-overlay'));
     return hoveringVideo || hoveringTwitchStream;
   }
 
@@ -157,8 +157,10 @@
       }
       twitchAdNoticeEl = document.querySelector('.player .player-ad-notice');
       mainScrollEl.addEventListener('scroll', function() {
-        var playerOverlayEl = mainScrollEl.querySelector('.player .player-overlay.player-fullscreen-overlay');
-        adjustHoverPosition(playerOverlayEl);
+        var playerVideoEl = mainScrollEl.querySelector('.player .player-video');
+        if (playerVideoEl) {
+          adjustHoverPosition(playerVideoEl);
+        }
       });
     }
   }
