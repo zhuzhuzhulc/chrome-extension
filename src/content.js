@@ -1,5 +1,5 @@
 (function(w, document, chrome) {
-  var onTwitch = /^https?:\/\/www\.twitch\.tv/.test(window.location.href);
+  var onTwitch = /^https?:\/\/www\.twitch\.tv/.test(window.location.href), twitchAdNoticeEl;
   var hideClipIt = false;
 
   function cumulativeOffset(element) {
@@ -20,8 +20,15 @@
     return !hideClipIt && (hasVideo || onTwitch);
   }
 
+  function adIsShowing() {
+    return twitchAdNoticeEl && getComputedStyle(twitchAdNoticeEl, null).display !== 'none';
+  }
+
   function shouldShowHover(el) {
     if (el.getAttribute('data-streamable-noclip') !== null) {
+      return false;
+    }
+    if (adIsShowing()) {
       return false;
     }
     var hoveringVideo = el.tagName.toLowerCase() === 'video';
@@ -148,6 +155,7 @@
       if (!mainScrollEl) {
         return;
       }
+      twitchAdNoticeEl = document.querySelector('.player .player-ad-notice');
       mainScrollEl.addEventListener('scroll', function() {
         var playerOverlayEl = mainScrollEl.querySelector('.player .player-overlay.player-fullscreen-overlay');
         adjustHoverPosition(playerOverlayEl);
