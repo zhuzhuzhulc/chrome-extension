@@ -21,7 +21,7 @@
   }
 
   function shouldShowHover(el) {
-    if (el.getAttribute('data-clip-noclip')) {
+    if (el.getAttribute('data-streamable-noclip') !== null) {
       return false;
     }
     var hoveringVideo = el.tagName.toLowerCase() === 'video';
