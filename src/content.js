@@ -5,7 +5,7 @@
   function cumulativeOffset(element) {
     var top = 0, left = 0;
     do {
-      top += element.offsetTop || 0;
+      top += (element.offsetTop || 0) - (element.scrollTop || 0);
       left += element.offsetLeft || 0;
       element = element.offsetParent;
     } while(element);
@@ -25,8 +25,8 @@
       return false;
     }
     var hoveringVideo = el.tagName.toLowerCase() === 'video';
-    var hoveringObject = el.tagName.toLowerCase() === 'object'
-    return hoveringVideo || (onTwitch && hoveringObject);
+    var hoveringTwitchStream = onTwitch && el.matches('.player-overlay');
+    return hoveringVideo || hoveringTwitchStream;
   }
 
   function getVideoSourceUrl(el) {
@@ -91,6 +91,12 @@
     document.body.appendChild(btn);
     hover.btn = btn;
 
+    function adjustHoverPosition(relativeEl) {
+      var offset = cumulativeOffset(relativeEl);
+      hover.btn.style.top = offset.top + 6 + 'px';
+      hover.btn.style.left = offset.left + 6 + 'px';
+    }
+
     document.body.addEventListener('mouseover', function(e) {
       if (e.target === hover.btn) {
         w.clearTimeout(hover.timer);
@@ -99,9 +105,7 @@
         if (!hover.showing && videoIsClippable(e.target)) {
           w.clearTimeout(hover.timer);
           hover.showing = true;
-          var offset = cumulativeOffset(e.target);
-          hover.btn.style.top = offset.top + 6 + 'px';
-          hover.btn.style.left = offset.left + 6 + 'px';
+          adjustHoverPosition(e.target);
           hover.btn.style.display = 'block';
           hover.video = e.target;
         }
@@ -138,6 +142,17 @@
         }
       }
     });
+
+    if (onTwitch) {
+      var mainScrollEl = document.querySelector('#main_col .tse-scroll-content');
+      if (!mainScrollEl) {
+        return;
+      }
+      mainScrollEl.addEventListener('scroll', function() {
+        var playerOverlayEl = mainScrollEl.querySelector('.player .player-overlay.player-fullscreen-overlay');
+        adjustHoverPosition(playerOverlayEl);
+      });
+    }
   }
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
