@@ -1,5 +1,5 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
-var APP_URL = 'http://staging.streamable.com';
+var APP_URL = 'https://streamable.com';
 
 var VIDEO_SITES_RE = /streamable\.com/;
 var STREAMING_SITES_RE = /streamable\.com/;
