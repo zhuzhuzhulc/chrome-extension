@@ -1,5 +1,5 @@
 (function(w, document, chrome) {
-  var onTwitch = /^https?:\/\/www\.twitch\.tv/.test(window.location.href), twitchAdNoticeEl;
+  var onTwitch = /^https?:\/\/www\.twitch\.tv/.test(window.location.href);
   var hideClipIt = false;
 
   function cumulativeOffset(element) {
@@ -17,23 +17,15 @@
 
   function shouldEnableHover() {
     var hasVideo = !!(document.body && document.body.querySelector('video'));
-    return !hideClipIt && (hasVideo || onTwitch);
-  }
-
-  function adIsShowing() {
-    return twitchAdNoticeEl && getComputedStyle(twitchAdNoticeEl, null).display !== 'none';
+    return !hideClipIt && hasVideo;
   }
 
   function shouldShowHover(el) {
     if (el.getAttribute('data-streamable-noclip') !== null) {
       return false;
     }
-    if (adIsShowing()) {
-      return false;
-    }
     var hoveringVideo = el.tagName.toLowerCase() === 'video';
-    var hoveringTwitchStream = onTwitch && (el.matches('object[id^=player]') || el.matches('.player-overlay'));
-    return hoveringVideo || hoveringTwitchStream;
+    return hoveringVideo;
   }
 
   function getVideoSourceUrl(el) {
@@ -54,7 +46,7 @@
   }
 
   function videoIsClippable(el) {
-    return onTwitch || !!getVideoSourceUrl(el);
+    return !!getVideoSourceUrl(el);
   }
 
   function getStreamTitle() {
@@ -132,13 +124,7 @@
       if (e.target !== hover.btn) {
         return;
       }
-      if (onTwitch) {
-        chrome.runtime.sendMessage({
-          clipStream: true,
-          title: getStreamTitle(),
-          source: window.location.href
-        });
-      } else if (videoIsClippable(hover.video)) {
+      if (videoIsClippable(hover.video)) {
         var sourceUrl = getVideoSourceUrl(hover.video);
         if (sourceUrl) {
           chrome.runtime.sendMessage({
@@ -149,20 +135,6 @@
         }
       }
     });
-
-    if (onTwitch) {
-      var mainScrollEl = document.querySelector('#main_col .tse-scroll-content');
-      if (!mainScrollEl) {
-        return;
-      }
-      twitchAdNoticeEl = document.querySelector('.player .player-ad-notice');
-      mainScrollEl.addEventListener('scroll', function() {
-        var playerVideoEl = mainScrollEl.querySelector('.player .player-video');
-        if (playerVideoEl) {
-          adjustHoverPosition(playerVideoEl);
-        }
-      });
-    }
   }
 
   chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
