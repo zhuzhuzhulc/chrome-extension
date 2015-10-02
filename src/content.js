@@ -63,12 +63,28 @@
     return title;
   }
 
+  function getVersion(callback) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open('GET', chrome.extension.getURL('manifest.json'));
+    xmlhttp.onload = function (e) {
+      var manifest = JSON.parse(xmlhttp.responseText);
+      callback(manifest.version);
+    }
+    xmlhttp.send(null);
+  }
+
   function init() {
     var hover = {
       btn: null,
       video: null,
       showing: false,
       enabled: shouldEnableHover()
+    }
+
+    if (document && document.body) {
+      getVersion(function(version) {
+        document.body.setAttribute('data-streamable-extension-installed', 'cr-' + version);
+      });
     }
 
     if (!hover.enabled) {
