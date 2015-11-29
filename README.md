@@ -1,21 +1,19 @@
-# Streamable Clipper Chrome Extension
+# Clipper for Chrome
 
-Instantly clip and share live streams and videos from Twitch, YouTube, and more!
+This extension lets you create short video clips from Twitch live streams, YouTube vidoes, and a number of other sites.
 
-Clip your favorite streams from around the web with the official Streamable Clipper for Chrome.
+When installed, a blue button will show up in the address bar if you're on a supported site. Just click on the button, set your desired crop/speed/duration settings, and click "Create Clip".
 
-Just click the blue icon in the address bar to get started. Then set your desired crop, speed, and duration settings to create your shiny new Streamable video. Sweet!
-
-If you're logged into Streamable, clips are saved to your account. If not, clips will be posted anonymously. Happy clipping!
+If you're logged into Streamable, video clips are saved to your account. If not, clips will be posted anonymously.
 
 ### Supported sites
 
+* [Twitch](http://www.twitch.tv/)
+* [YouTube](https://www.youtube.com/)
 * [Dailymotion](http://www.dailymotion.com/)
 * [Gfycat](https://gfycat.com/)
-* [Twitch](http://www.twitch.tv/)
 * [Vimeo](https://vimeo.com/)
 * [Vine](https://vine.co/)
-* [YouTube](https://www.youtube.com/)
 
 ## Install
 
@@ -23,7 +21,7 @@ Install the extension from the [Chrome Web Store](https://chrome.google.com/webs
 
 ## Development
 
-If you'd like to see a new site supported, [open an issue](https://github.com/streamablevideo/chrome-extension/issues) or send us a [pull request](https://github.com/streamablevideo/chrome-extension/pulls)!
+Want to help out? [Open an issue](https://github.com/streamablevideo/chrome-extension/issues) or send us a [pull request](https://github.com/streamablevideo/chrome-extension/pulls)!
 
 ### Setup
 
