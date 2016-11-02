@@ -30,8 +30,8 @@
   "homepage": "https://github.com/streamablevideo/streamable-chrome-extension",
   "dependencies": {
     "crx": "^3.0.3",
-    "datauri": "^0.7.1",
-    "eslint": "^1.4.3",
+    "datauri": "^1.0.4",
+    "eslint": "^3.9.1",
     "s3-cli": "^0.13.0"
   }
 }
