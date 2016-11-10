@@ -162,7 +162,7 @@ chrome.webRequest.onCompleted.addListener(function(req) {
   chrome.tabs.get(req.tabId, function(tab) {
     manager.trackSegment(tab, req.url);
   });
-}, {urls: ["http://*.ttvnw.net/*.ts"]});
+}, {urls: ["*://*.ttvnw.net/*.ts"]});
 
 chrome.pageAction.onClicked.addListener(function(tab) {
   if (isStreamingSite(tab.url)) {
