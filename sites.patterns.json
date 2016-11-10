@@ -12,6 +12,7 @@
     "*://*/*.webm"
   ],
   "streamingSites": [
-    "*://*.twitch.tv/*"
+    "*://*.twitch.tv/*",
+    "*://*.youtube.com/watch*"
   ]
 }

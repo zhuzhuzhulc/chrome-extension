@@ -1,5 +1,6 @@
 var MAX_SEGMENTS = 10; // each segment is 3 seconds long
-var APP_URL = 'https://streamable.com';
+//var APP_URL = 'https://streamable.com';
+var APP_URL = 'http://localhost:5000';
 
 var VIDEO_SITES_RE = /streamable\.com/;
 var STREAMING_SITES_RE = /streamable\.com/;
@@ -122,11 +123,17 @@ function stopClipping(tab) {
   updatePageAction(tab);
 }
 
-function clipStream(tab, title, source) {
+function canClipStream(tab) {
   var stream = manager.streams[tab.id];
-  if (!(stream && stream.urls)) {
+  return !!(stream && stream.urls);
+}
+
+function clipStream(tab, title, source) {
+  if (!canClipStream(tab)) {
     return;
   }
+
+  var stream = manager.streams[tab.id];
 
   startClipping(tab);
 
@@ -162,13 +169,13 @@ chrome.webRequest.onCompleted.addListener(function(req) {
   chrome.tabs.get(req.tabId, function(tab) {
     manager.trackSegment(tab, req.url);
   });
-}, {urls: ["*://*.ttvnw.net/*.ts"]});
+}, {urls: ["*://*.ttvnw.net/*.ts", "*://*.googlevideo.com/videoplayback?id=*itag=302&source=yt_live_broadcast*"]});
 
 chrome.pageAction.onClicked.addListener(function(tab) {
-  if (isStreamingSite(tab.url)) {
+  if (isStreamingSite(tab.url) && canClipStream(tab)) {
     if (manager.isAvailable(tab.id)) {
       chrome.tabs.sendMessage(tab.id, {'getStreamTitle': true}, function(response) {
-        clipStream(tab, response.streamTitle, tab.url);
+        clipStream(tab, response ? response.streamTitle : "", tab.url);
       });
     }
   }
@@ -220,7 +227,8 @@ function loadStoredSiteUrls() {
       "(^https?://(?:.+\\.)?youtube\\.com\\/watch[^/]+$)"
     ],
     streamingSites: [
-      "(^https?://(?:.+\\.)?twitch\\.tv\\/[^/]+$)"
+      "(^https?://(?:.+\\.)?twitch\\.tv\\/[^/]+$)",
+      "(^https?://(?:.+\\.)?youtube\\.com\\/watch[^/]+$)"
     ]
   }, updateSitesRegExps);
 }
@@ -234,9 +242,9 @@ function updateSiteUrls() {
 }
 
 chrome.runtime.onInstalled.addListener(function() {
-  updateSiteUrls();
+  //updateSiteUrls();
 });
 
 chrome.runtime.onStartup.addListener(function() {
-  updateSiteUrls();
+  //updateSiteUrls();
 });
